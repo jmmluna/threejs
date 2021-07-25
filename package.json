@@ -1,0 +1,23 @@
+{
+    "name": "threejs",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "start": "parcel serve ./src/index.html --no-cache --no-source-maps -p 9000",
+        "build": "parcel build ./src/index.html"
+    },
+    "browserslist": "> 0.2%",
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "d3-geo": "^3.0.1",
+        "three": "^0.130.0",
+        "three-geojson-geometry": "^1.1.4",
+        "three-orbit-controls": "^82.1.0"
+    },
+    "devDependencies": {
+        "parcel": "^2.0.0-beta.3.1"
+    }
+}
