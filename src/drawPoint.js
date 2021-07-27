@@ -94,3 +94,19 @@ export const animate = function() {
 
     renderer.render(scene, camera);
 };
+
+function lglt2xyz(longitude,latitude,radius){
+    var lg = degreesToRadians(longitude) , lt = degreesToRadians(latitude);
+    var y = radius * Math.sin(lt);
+    var temp = radius * Math.cos(lt);
+    var x = temp * Math.sin(lg);
+    var z = temp * Math.cos(lg);
+    // console.log(x+","+y+","+z);
+    return {x:x , y:y ,z:z}
+}
+
+function degrees2Radians(degrees)
+{
+  var pi = Math.PI;
+  return degrees * (pi/180);
+}
