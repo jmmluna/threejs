@@ -13,6 +13,7 @@
     "license": "ISC",
     "dependencies": {
         "d3-geo": "^3.0.1",
+        "ecef-projector": "^1.0.1",
         "three": "^0.130.0",
         "three-geojson-geometry": "^1.1.4",
         "three-orbit-controls": "^82.1.0"

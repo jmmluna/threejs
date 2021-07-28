@@ -1,4 +1,6 @@
 import * as THREE from "three";
+var projector = require("ecef-projector");
+
 var OrbitControls = require("three-orbit-controls")(THREE);
 const scene = new THREE.Scene();
 
@@ -12,12 +14,14 @@ scene.background = new THREE.Color(0xb0b0b0);
 // );
 
 const camera = new THREE.PerspectiveCamera(
-    70,
-    window.innerWidth / window.innerHeight,
-    1,
-    10000
+  70,
+  window.innerWidth / window.innerHeight,
+  1,
+  10000
 );
-camera.position.set(0, 0, 200);
+
+// camera.updateMatrixWorld();
+// camera.position.set(0, 0, 200);
 
 const group = new THREE.Group();
 scene.add(group);
@@ -77,6 +81,14 @@ box.position.y = 10;
 box.position.z = 10;
 scene.add(box);
 
+const objects = [];
+objects.push(addPoint(38.428645150008734, -4.765634137835777, 0x00ff00));
+objects.push(addPoint(38.4288288848726, -4.765544466449672, 0xff0000));
+objects.push(addPoint(38.42874477772004, -4.765594491508682, 0xfff000));
+
+zoomCameraToSelection(camera, controls, objects);
+camera.updateMatrixWorld();
+
 // camera.position.z = 5;
 // camera.position.set(0, 0, 5);
 
@@ -86,27 +98,69 @@ scene.add(box);
 // var dot = new THREE.Points(dotGeometry, dotMaterial);
 // scene.add(dot);
 
-export const animate = function() {
-    requestAnimationFrame(animate);
+export const animate = function () {
+  requestAnimationFrame(animate);
 
-    cube.rotation.x += 0.01;
-    cube.rotation.y += 0.01;
+  cube.rotation.x += 0.01;
+  cube.rotation.y += 0.01;
 
-    renderer.render(scene, camera);
+  renderer.render(scene, camera);
 };
 
-function lglt2xyz(longitude,latitude,radius){
-    var lg = degreesToRadians(longitude) , lt = degreesToRadians(latitude);
-    var y = radius * Math.sin(lt);
-    var temp = radius * Math.cos(lt);
-    var x = temp * Math.sin(lg);
-    var z = temp * Math.cos(lg);
-    // console.log(x+","+y+","+z);
-    return {x:x , y:y ,z:z}
+function addPoint(longitude, latitude, color) {
+  const radius = 0.0;
+
+  var xyz = projector.project(longitude, latitude, radius);
+
+  //   var gps = projector.unproject(xyz[0], xyz[1], xyz[2]);
+  //   window.innerWidth / window.innerHeight
+  //   const normalizedLatitude = 2.0 * ((latitude + 90.0) / 180.0 - 0.5);
+  //   const normalizedLongitude = 2.0 * ((longitude + 180.0) / 360.0 - 0.5);
+
+  //   let x = normalizedLongitude * 200.0;
+  //   let y = normalizedLatitude * 100.0;
+  //   console.log(x, y);
+  const geometry = new THREE.BoxGeometry();
+  const material = new THREE.MeshBasicMaterial({
+    color: color,
+  });
+  const point = new THREE.Mesh(geometry, material);
+  point.position.set(xyz[0], xyz[0], 0.0);
+  scene.add(point);
+
+  //   camera.position.set(xyz[0], xyz[0], 200);
+  return point;
+  console.log(xyz);
 }
 
-function degrees2Radians(degrees)
-{
-  var pi = Math.PI;
-  return degrees * (pi/180);
+function zoomCameraToSelection(camera, controls, objects, fitRatio = 1.2) {
+  const box = new THREE.Box3();
+
+  for (const object of objects) box.expandByObject(object);
+
+  const size = box.getSize(new THREE.Vector3());
+  const center = box.getCenter(new THREE.Vector3());
+
+  const maxSize = Math.max(size.x, size.y, size.z);
+  const fitHeightDistance =
+    maxSize / (2 * Math.atan((Math.PI * camera.fov) / 360));
+  const fitWidthDistance = fitHeightDistance / camera.aspect;
+  const distance = fitRatio * Math.max(fitHeightDistance, fitWidthDistance);
+
+  const direction = controls.target
+    .clone()
+    .sub(camera.position)
+    .normalize()
+    .multiplyScalar(distance);
+
+  controls.maxDistance = distance * 10;
+  controls.target.copy(center);
+
+  camera.near = distance / 100;
+  camera.far = distance * 100;
+  camera.updateProjectionMatrix();
+
+  camera.position.copy(controls.target).sub(direction);
+
+  controls.update();
 }
